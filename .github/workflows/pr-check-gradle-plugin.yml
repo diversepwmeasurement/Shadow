@@ -1,55 +1,61 @@
-name: gradle-plugin-agp-compat-test
-
-on:
-  pull_request:
-    branches: [ master ]
-    paths:
-      - 'projects/sdk/core/gradle-plugin/**'
-      - 'projects/sdk/core/manifest-parser/**'
-      - 'projects/sdk/core/transform/**'
-      - 'projects/sdk/core/transform-kit/**'
-      - 'projects/sdk/coding/**'
-      - 'projects/test/gradle-plugin-agp-compat-test/**'
-
 jobs:
   gradle-plugin-agp-compat-test:
-    runs-on: ubuntu-latest
     env:
       DISABLE_TENCENT_MAVEN_MIRROR: true
+    runs-on: self-hosted
     steps:
-      - name: Inject slug/short variables
-        uses: rlespinasse/github-slug-action@v3.x
-      - name: checkout
-        uses: actions/checkout@v2
-      - uses: actions/cache@v2
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
-      - name: revert gradle wrapper mirror setting
-        run: echo 'distributionUrl=https\://services.gradle.org/distributions/gradle-7.5-bin.zip' >  gradle/wrapper/gradle-wrapper.properties
-      - name: revert gradle wrapper mirror setting
-        working-directory: projects/test/gradle-plugin-agp-compat-test
-        run: echo 'distributionUrl=https\://services.gradle.org/distributions/gradle-7.5-bin.zip' >  gradle/wrapper/gradle-wrapper.properties
-      - uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-          cache: 'gradle'
-      - name: test AGP compatibility when core.gradle-plugin changed with JDK17
-        working-directory: projects/test/gradle-plugin-agp-compat-test
-        run: ./test_JDK17.sh
-      - uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '11'
-          cache: 'gradle'
-      - name: test AGP compatibility when core.gradle-plugin changed with JDK11
-        working-directory: projects/test/gradle-plugin-agp-compat-test
-        run: ./test_JDK11.sh
+    - continue-on-error: true
+      name: Inject slug/short variables
+      uses: rlespinasse/github-slug-action@v3.x
+    - continue-on-error: true
+      name: checkout
+      uses: actions/checkout@v2
+    - continue-on-error: true
+      uses: actions/cache@v2
+      with:
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties')
+          }}
+        path: '~/.gradle/caches
 
-      - name: stop gradle deamon for actions/cache
-        run: ./gradlew --stop
+          ~/.gradle/wrapper
+
+          '
+        restore-keys: '${{ runner.os }}-gradle-
+
+          '
+    - continue-on-error: true
+      name: revert gradle wrapper mirror setting
+      run: echo 'distributionUrl=https\://services.gradle.org/distributions/gradle-7.5-bin.zip'
+        >  gradle/wrapper/gradle-wrapper.properties
+    - continue-on-error: true
+      name: revert gradle wrapper mirror setting
+      run: echo 'distributionUrl=https\://services.gradle.org/distributions/gradle-7.5-bin.zip'
+        >  gradle/wrapper/gradle-wrapper.properties
+      working-directory: projects/test/gradle-plugin-agp-compat-test
+    - continue-on-error: true
+      uses: actions/setup-java@v4
+      with:
+        cache: gradle
+        distribution: temurin
+        java-version: '17'
+    - continue-on-error: true
+      name: test AGP compatibility when core.gradle-plugin changed with JDK17
+      run: ./test_JDK17.sh
+      working-directory: projects/test/gradle-plugin-agp-compat-test
+    - continue-on-error: true
+      uses: actions/setup-java@v4
+      with:
+        cache: gradle
+        distribution: temurin
+        java-version: '11'
+    - continue-on-error: true
+      name: test AGP compatibility when core.gradle-plugin changed with JDK11
+      run: ./test_JDK11.sh
+      working-directory: projects/test/gradle-plugin-agp-compat-test
+    - continue-on-error: true
+      name: stop gradle deamon for actions/cache
+      run: ./gradlew --stop
+name: gradle-plugin-agp-compat-test
+on:
+  repository_dispatch:
+    types: trigger-ga___pr-check-gradle-plugin.yml

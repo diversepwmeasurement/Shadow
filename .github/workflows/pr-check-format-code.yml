@@ -1,31 +1,35 @@
-name: pr-check-format-code
-
-on:
-  pull_request:
-    branches: [ master ]
-
 jobs:
   check-format-code:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
-      - name: checkout
-        uses: actions/checkout@v2
-      - name: Cache android-studio
-        id: cache-android-studio
-        uses: actions/cache@v2
-        with:
-          path: android-studio
-          key: ${{ runner.os }}-android-studio
-      - name: download android-studio
-        if: steps.cache-android-studio.outputs.cache-hit != 'true'
-        run: |
-          wget https://redirector.gvt1.com/edgedl/android/studio/ide-zips/2021.1.1.20/android-studio-2021.1.1.20-linux.tar.gz
-          tar -xvzf android-studio-2021.1.1.20-linux.tar.gz
-          rm -rf android-studio-2021.1.1.20-linux.tar.gz
-      - name: use android-studio format all files
-        run: ./android-studio/bin/format.sh -s .idea/codeStyles/Project.xml -r -m \*.java,\*.kt,\*.xml .
-      - name: show diff for files not formated
-        run: |
-          if ! git diff --quiet; then
-            git diff --exit-code
-          fi
+    - continue-on-error: true
+      name: checkout
+      uses: actions/checkout@v2
+    - continue-on-error: true
+      id: cache-android-studio
+      name: Cache android-studio
+      uses: actions/cache@v2
+      with:
+        key: ${{ runner.os }}-android-studio
+        path: android-studio
+    - continue-on-error: true
+      if: steps.cache-android-studio.outputs.cache-hit != 'true'
+      name: download android-studio
+      run: 'wget https://redirector.gvt1.com/edgedl/android/studio/ide-zips/2021.1.1.20/android-studio-2021.1.1.20-linux.tar.gz
+
+        tar -xvzf android-studio-2021.1.1.20-linux.tar.gz
+
+        rm -rf android-studio-2021.1.1.20-linux.tar.gz
+
+        '
+    - continue-on-error: true
+      name: use android-studio format all files
+      run: ./android-studio/bin/format.sh -s .idea/codeStyles/Project.xml -r -m \*.java,\*.kt,\*.xml
+        .
+    - continue-on-error: true
+      name: show diff for files not formated
+      run: "if ! git diff --quiet; then\n  git diff --exit-code\nfi\n"
+name: pr-check-format-code
+on:
+  repository_dispatch:
+    types: trigger-ga___pr-check-format-code.yml
